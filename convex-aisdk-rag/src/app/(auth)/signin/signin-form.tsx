@@ -15,9 +15,17 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { AuthFormValues, signinSchema } from "../schema";
+import { useAuthActions } from "@convex-dev/auth/react";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 
 export function SigninForm() {
   const [step, setStep] = useState<"signIn" | "signUp">("signIn");
+
+  const { signIn } = useAuthActions();
+  const [isloading, setLoading] = useState(false);
+
+  const router = useRouter();
 
   const form = useForm<AuthFormValues>({
     resolver: zodResolver(signinSchema),
@@ -28,7 +36,37 @@ export function SigninForm() {
   });
 
   async function onSubmit(values: AuthFormValues) {
-    // TODO: Sign in
+    setLoading(true);
+    try {
+      await signIn("password", {
+        ...values,
+        flow: step,
+      });
+      toast.success(
+        step === "signIn"
+          ? "Logged in successfully!"
+          : "Account created successfully!"
+      );
+      router.push("/notes");
+    } catch (error) {
+      console.error(error);
+      if (
+        error instanceof Error &&
+        (error.message.includes("InvalidAccountId") ||
+          error.message.includes("InvalidSecret"))
+      ) {
+        form.setError("root", {
+          type: "manual",
+          message: "Invalid email or password. Please try again.",
+        });
+      }
+      else{
+        toast.error("Something went wrong. Please try again later.");
+      }
+    }
+    finally {
+      setLoading(false);
+    }
   }
 
   return (
@@ -81,7 +119,7 @@ export function SigninForm() {
                 {form.formState.errors.root.message}
               </div>
             )}
-            <Button type="submit" className="w-full">
+            <Button type="submit" className="w-full" disabled={isloading}>
               {step === "signIn" ? "Sign In" : "Sign Up"}
             </Button>
           </form>
