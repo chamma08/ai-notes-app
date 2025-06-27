@@ -1,0 +1,27 @@
+import { openai } from "@ai-sdk/openai";
+import { embedMany } from "ai";
+
+const embeddingModel = openai.embedding("text-embedding-3-small");
+
+function generateChuncks(input: string) {
+  return input
+    .split("\n\n")
+    .map((chunk) => chunk.trim())
+    .filter(Boolean);
+}
+
+export async function generateEmbeddings(
+  value: string
+): Promise<Array<{ content: string; embedding: number[] }>> {
+  const chunks = generateChuncks(value);
+
+  const { embeddings } = await embedMany({
+    model: embeddingModel,
+    values: chunks,
+  });
+
+  return embeddings.map((embedding, index) => ({
+    content: chunks[index],
+    embedding,
+  }));
+}
