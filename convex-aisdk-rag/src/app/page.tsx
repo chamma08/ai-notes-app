@@ -196,7 +196,7 @@ export default function Home() {
               animate={{ opacity: 1 }}
               transition={{ duration: 0.8, delay: 1.2 }}
             >
-              No signup required • Start taking smart notes immediately
+              Start your journey with Smart Notes today! Explore the power of AI in note-taking and discover how it can enhance your productivity and learning experience
             </motion.p>
           </motion.div>
 
